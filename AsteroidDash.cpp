@@ -72,7 +72,36 @@ void AsteroidDash::read_player(const string &player_file_name, const string &pla
 // Function to read celestial objects from a file
 void AsteroidDash::read_celestial_objects(const string &input_file)
 {
-    // TODO: Your code here
+    ifstream file(input_file);
+    string line;
+    int start_row, time_step;
+
+    while (getline(file, line))
+    {
+
+    // we need celestial objects if starts with [ its an asteroid
+        if (line[0] == '[')
+        {
+            ObjectType type = ASTEROID;
+        }
+    // if starts with { it is a power-up and has an additional e type
+        else if (line[0] == '{')
+        {
+            ObjectType type = LIFE_UP;
+        }
+        vector<vector<bool>> shape;
+        while((line.back()!='{' || line.back() != '[') && getline(file,line)){
+            vector<bool> row;
+            for(char c : line){
+                if(c == 1 || c == 0){
+                    row.push_back(c == 1);
+                }
+            }
+        }
+    }
+    // s is the starting  row of the top left corner of the object
+    // t is the tick or time step in the game when the object should begin entering
+
 }
 
 // Print the entire space grid

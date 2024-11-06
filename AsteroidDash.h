@@ -70,8 +70,7 @@ public:
 
     // Corresponds to the SHOOT command.
     void shoot();
-    private:
-        vector<vector<int>> space_grid;
+
 
 };
 
