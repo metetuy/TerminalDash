@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include "CelestialObject.h"
 #include "LeaderboardEntry.h"
@@ -68,6 +70,9 @@ public:
 
     // Corresponds to the SHOOT command.
     void shoot();
+    private:
+        vector<vector<int>> space_grid;
+
 };
 
 
