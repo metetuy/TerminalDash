@@ -74,34 +74,70 @@ void AsteroidDash::read_celestial_objects(const string &input_file)
 {
     ifstream file(input_file);
     string line;
-    int start_row, time_step;
+    int start_row = 0, time_step = 0;
+    bool is_asteroid = (line[0] == '[');
 
     while (getline(file, line))
     {
-
-    // we need celestial objects if starts with [ its an asteroid
-        if (line[0] == '[')
+        ObjectType type;
+        // we need celestial objects if starts with [ its an asteroid
+        if (is_asteroid)
         {
-            ObjectType type = ASTEROID;
+            type = ASTEROID;
         }
-    // if starts with { it is a power-up and has an additional e type
+        // if starts with { it is a power-up and has an additional e type
         else if (line[0] == '{')
         {
-            ObjectType type = LIFE_UP;
+            type = LIFE_UP;
         }
         vector<vector<bool>> shape;
-        while((line.back()!='{' || line.back() != '[') && getline(file,line)){
+        // traverse the celestial object until the end character to get the shape
+        while ((line.back() != '}' || line.back() != ']') && getline(file, line))
+        {
             vector<bool> row;
-            for(char c : line){
-                if(c == 1 || c == 0){
+            for (char c : line)
+            {
+                if (c == 1 || c == 0)
+                {
                     row.push_back(c == 1);
                 }
             }
+            shape.push_back(row);
         }
-    }
-    // s is the starting  row of the top left corner of the object
-    // t is the tick or time step in the game when the object should begin entering
+        // s is the starting  row of the top left corner of the object
+        // t is the tick or time step in the game when the object should begin entering
+        // read the additional data provided with the celestial object
+        while (getline(file, line))
+        {
+            istringstream iss(line);
+            char e_type;
+            string extra_type;
+            // get the additional info
+            if (line.find(':') != string::npos)
+            {
+                if (line[0] == 's')
+                {
+                    start_row = line[2];
+                }
+                else if (line[0] == 't')
+                {
+                    time_step = line[2];
+                }
+                else if (line[0] == 'e')
+                {
+                    iss >> e_type >> extra_type;
+                    type = (extra_type == "ammo") ? AMMO : LIFE_UP;
+                }
+            }
+        }
+        // create new celestial object
+        CelestialObject *new_celestial_object = new CelestialObject(shape, type, start_row, time_step);
 
+        // link the created celestial object to the linked list
+        new_celestial_object->next_celestial_object = celestial_objects_list_head;
+        celestial_objects_list_head = new_celestial_object;
+    }
+    file.close();
 }
 
 // Print the entire space grid
