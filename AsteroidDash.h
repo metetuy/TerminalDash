@@ -17,10 +17,18 @@
 
 using namespace std;
 
-// Class that encapsulates the game play internals
-class AsteroidDash {
-public:
+struct Projectile
+{
+    int row;
+    int col;
 
+    Projectile(int r, int c) : row(r), col(c) {}
+};
+
+// Class that encapsulates the game play internals
+class AsteroidDash
+{
+public:
     // Constructor to initialize the game
     AsteroidDash(const string &space_grid_file_name, const string &celestial_objects_file_name,
                  const string &leaderboard_file_name, const string &player_file_name, const string &player_name);
@@ -29,7 +37,10 @@ public:
     virtual ~AsteroidDash();
 
     // 2D space_grid
-    vector<vector<int> > space_grid;
+    vector<vector<int>> space_grid;
+
+    // Projectiles
+    vector<Projectile> projectiles;
 
     // Pointer to track the player instance
     Player *player = nullptr;
@@ -70,9 +81,6 @@ public:
 
     // Corresponds to the SHOOT command.
     void shoot();
-
-
 };
-
 
 #endif // ASTEROIDDASH_H
