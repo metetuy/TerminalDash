@@ -63,6 +63,9 @@ public:
     // True if the game is over
     bool game_over = false;
 
+    // Function to detect collisions
+    bool check_collision(int row, int col);
+    
     // Function to print the space_grid
     void print_space_grid() const;
 
@@ -75,6 +78,7 @@ public:
     // Function to read celestial objects from a file
     // Reads the input file and calls the read_celestial_object() function for each celestial_object;
     void read_celestial_objects(const string &input_file);
+
 
     // Updates the grid based on player and celestial object states
     void update_space_grid();

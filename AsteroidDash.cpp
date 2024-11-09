@@ -16,6 +16,31 @@ AsteroidDash::AsteroidDash(const string &space_grid_file_name,
     leaderboard.read_from_file(leaderboard_file_name);
 }
 
+bool AsteroidDash::check_collision(int row, int col)
+{
+    // Check every celestial objects position
+    CelestialObject *celestial_object = celestial_objects_list_head;
+    while (celestial_object != nullptr)
+    {
+        int c_start_row = celestial_object->starting_row;
+        int c_start_col = space_grid[c_start_row].size() - 1 - (game_time - celestial_object->time_of_appearance);
+
+        // Loop through the celestial objects shape and control if the row and col is occupied or not
+        for (int i = 0; i < celestial_object->shape.size(); i++)
+        {
+            for (int j = 0; j < celestial_object->shape[i].size(); j++)
+            {
+                if (celestial_object->shape[i][j] && c_start_row + i == row && c_start_col + j == col)
+                {
+                    return true;
+                }
+            }
+        }
+        celestial_object = celestial_object->next_celestial_object;
+    }
+    return false;
+}
+
 // Function to read the space grid from a file
 void AsteroidDash::read_space_grid(const string &input_file)
 {
@@ -92,7 +117,7 @@ void AsteroidDash::read_celestial_objects(const string &input_file)
         }
         vector<vector<bool>> shape;
         // traverse the celestial object until the end character to get the shape
-        while ((line.back() != '}' || line.back() != ']') && getline(file, line))
+        while (line.back() != '}' && line.back() != ']' && getline(file, line))
         {
             vector<bool> row;
             for (char c : line)
@@ -210,7 +235,7 @@ void AsteroidDash::update_space_grid()
         celestial_object = celestial_object->next_celestial_object;
     }
 
-    // Update projectiles and detect collisions
+    // update projectiles and detect collisions
     for (int i = 0; i < projectiles.size(); i++)
     {
         // make projectile move to the right
@@ -226,9 +251,13 @@ void AsteroidDash::update_space_grid()
             i--;
         }
     }
-    // Handle collisions
-    // increment game time
-    game_time++;
+
+    // handle collisions
+    // determine which rotation based on above the center row or below the center row
+    if (check_collision())
+
+        // increment game time
+        game_time++;
 }
 
 // Corresponds to the SHOOT command.
@@ -258,5 +287,16 @@ void AsteroidDash::shoot()
 // Destructor. Remove dynamically allocated member variables here.
 AsteroidDash::~AsteroidDash()
 {
-    // TODO: Your code here
+    // free the memory allocated for celestial objects
+    CelestialObject *celestial_object = celestial_objects_list_head;
+
+    while (celestial_object != nullptr)
+    {
+        CelestialObject *next = celestial_object->next_celestial_object;
+        delete celestial_object;
+        celestial_object = next;
+    }
+
+    // delete the player
+    delete player;
 }

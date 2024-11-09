@@ -42,6 +42,9 @@ public:
     // The step in the game after which the object will appear on the grid
     int time_of_appearance;
 
+    // Function to create rotations for the celestial objects.
+    static void create_rotations(CelestialObject *object);
+
     // Function to delete rotations of a given celestial object. It should free the dynamically allocated
     // space for each rotation.
     static void delete_rotations(CelestialObject *target);
