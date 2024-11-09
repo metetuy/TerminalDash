@@ -242,8 +242,47 @@ void AsteroidDash::update_space_grid()
         projectiles[i].col++;
 
         // out of bounds or collision check
-        if (projectiles[i].col >= space_grid[0].size() || check_collision(projectiles[i].row, projectiles[i].col))
+        if (projectiles[i].col >= space_grid[0].size())
         {
+            if (check_collision(projectiles[i].row, projectiles[i].col))
+            {
+                // handle collisions
+                CelestialObject *celestial_object = celestial_objects_list_head;
+                while (celestial_object != nullptr)
+                {
+                    int o_start_row = celestial_object->starting_row;
+                    int o_start_col = space_grid[0].size() - 1 - (game_time - celestial_object->time_of_appearance);
+
+                    for (int m = 0; m < celestial_object->shape.size(); m++)
+                    {
+                        for (int n = 0; n < celestial_object->shape[m].size(); n++)
+                        {
+                            if (check_collision(m, n))
+                            {
+
+                                int o_center_row = o_start_row + celestial_object->shape.size() / 2;
+                                if (projectiles[i].row < o_center_row)
+                                {
+                                    if (celestial_object->right_rotation)
+                                    {
+
+                                        celestial_object = celestial_object->right_rotation;
+                                    }
+                                }
+                                else
+                                {
+                                    if (celestial_object->left_rotation)
+                                    {
+                                        celestial_object = celestial_object->left_rotation;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    celestial_object = celestial_object->next_celestial_object;
+                }
+            }
+            // determine which rotation based on above the center row or below the center row
             projectiles[i] = projectiles.back();
             projectiles.pop_back();
 
@@ -252,12 +291,8 @@ void AsteroidDash::update_space_grid()
         }
     }
 
-    // handle collisions
-    // determine which rotation based on above the center row or below the center row
-    if (check_collision())
-
-        // increment game time
-        game_time++;
+    // increment game time
+    game_time++;
 }
 
 // Corresponds to the SHOOT command.

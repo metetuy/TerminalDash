@@ -6,20 +6,23 @@
 using namespace std;
 
 // Enum to represent the type of the object (asteroid, life-up, or ammo)
-enum ObjectType {
+enum ObjectType
+{
     ASTEROID = 0,
     LIFE_UP = 1,
     AMMO = 2
 };
 
-class CelestialObject {
+class CelestialObject
+{
 public:
-
     // Constructor to initialize CelestialObject with essential properties
     CelestialObject(const vector<vector<bool>> &shape, ObjectType type, int start_row, int time_of_appearance);
 
     // Copy constructor for CelestialObject
     CelestialObject(const CelestialObject *other);
+
+    static std::vector<std::vector<bool>> rotate_shape_90(const std::vector<std::vector<bool>> &shape);
 
     // Shape of the object represented as a 2D boolean vector
     vector<vector<bool>> shape;

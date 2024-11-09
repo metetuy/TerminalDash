@@ -18,17 +18,43 @@ CelestialObject::CelestialObject(const CelestialObject *other)
     // TODO: Your code here
 }
 
-void CelestialObject::create_rotations(CelestialObject *object)
-{
-    // right rotation alg
-    // left rotation alg
-    // link the rightest rotation and leftest rotation
-    // every rotation is linked to the next celestial object as well
+std::vector<std::vector<bool>> rotate_shape_90(const std::vector<std::vector<bool>> &shape) {
+    int rows = shape.size();
+    int cols = shape[0].size();
+    std::vector<std::vector<bool>> rotated(cols, std::vector<bool>(rows));
+
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            rotated[j][rows - 1 - i] = shape[i][j];
+        }
+    }
+    return rotated;
 }
 
-// Function to delete rotations of a given celestial object. It should free the dynamically allocated
-// memory for each rotation.
-void CelestialObject::delete_rotations(CelestialObject *target)
-{
-    // TODO: Your code here
+void CelestialObject::create_rotations(CelestialObject *object) {
+    CelestialObject *current = object;
+
+    for (int i = 0; i < 3; ++i) {
+        std::vector<std::vector<bool>> rotated_shape = rotate_shape_90(current->shape);
+        CelestialObject *rotation = new CelestialObject(rotated_shape, current->object_type, current->starting_row, current->time_of_appearance);
+
+        current->right_rotation = rotation;
+        rotation->left_rotation = current;
+        current = rotation;
+    }
+
+    current->right_rotation = object;
+    object->left_rotation = current;
+}
+
+void CelestialObject::delete_rotations(CelestialObject *target) {
+    CelestialObject *current = target->right_rotation;
+    while (current != target) {
+        CelestialObject *next = current->right_rotation;
+        delete current;
+        current = next;
+    }
+
+    target->right_rotation = target;
+    target->left_rotation = target;
 }
