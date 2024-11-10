@@ -22,8 +22,6 @@ public:
     // Copy constructor for CelestialObject
     CelestialObject(const CelestialObject *other);
 
-    static std::vector<std::vector<bool>> rotate_shape_90(const std::vector<std::vector<bool>> &shape);
-
     // Shape of the object represented as a 2D boolean vector
     vector<vector<bool>> shape;
 
@@ -44,6 +42,8 @@ public:
 
     // The step in the game after which the object will appear on the grid
     int time_of_appearance;
+
+    static std::vector<std::vector<bool>> rotate_shape_90(const std::vector<std::vector<bool>> &shape);
 
     // Function to create rotations for the celestial objects.
     static void create_rotations(CelestialObject *object);

@@ -18,23 +18,28 @@ CelestialObject::CelestialObject(const CelestialObject *other)
     // TODO: Your code here
 }
 
-std::vector<std::vector<bool>> rotate_shape_90(const std::vector<std::vector<bool>> &shape) {
+vector<std::vector<bool>> CelestialObject::rotate_shape_90(const std::vector<std::vector<bool>> &shape)
+{
     int rows = shape.size();
     int cols = shape[0].size();
     std::vector<std::vector<bool>> rotated(cols, std::vector<bool>(rows));
 
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
+    for (int i = 0; i < rows; ++i)
+    {
+        for (int j = 0; j < cols; ++j)
+        {
             rotated[j][rows - 1 - i] = shape[i][j];
         }
     }
     return rotated;
 }
 
-void CelestialObject::create_rotations(CelestialObject *object) {
+void CelestialObject::create_rotations(CelestialObject *object)
+{
     CelestialObject *current = object;
 
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 3; ++i)
+    {
         std::vector<std::vector<bool>> rotated_shape = rotate_shape_90(current->shape);
         CelestialObject *rotation = new CelestialObject(rotated_shape, current->object_type, current->starting_row, current->time_of_appearance);
 
@@ -47,9 +52,11 @@ void CelestialObject::create_rotations(CelestialObject *object) {
     object->left_rotation = current;
 }
 
-void CelestialObject::delete_rotations(CelestialObject *target) {
+void CelestialObject::delete_rotations(CelestialObject *target)
+{
     CelestialObject *current = target->right_rotation;
-    while (current != target) {
+    while (current != target)
+    {
         CelestialObject *next = current->right_rotation;
         delete current;
         current = next;
