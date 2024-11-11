@@ -72,13 +72,12 @@ void AsteroidDash::read_player(const string &player_file_name, const string &pla
 
     vector<vector<bool>> shape;
     ifstream file(player_file_name);
-    string line;
 
     int start_row, start_col;
     // TODO: Your code here
     // read the starting row and col pos. for top-left of the vehicle
     file >> start_row >> start_col;
-
+    string line;
     while (getline(file, line))
     {
         istringstream iss(line);
@@ -88,10 +87,20 @@ void AsteroidDash::read_player(const string &player_file_name, const string &pla
         {
             row.push_back(value == 1);
         }
-        shape.push_back(row);
+        if (!row.empty())
+        {
+
+            shape.push_back(row);
+        }
     }
-    player = new Player(shape, start_row, start_col, player_name);
     file.close();
+
+    if (player != nullptr)
+    {
+        delete player;
+    }
+
+    player = new Player(shape, start_row, start_col, player_name);
 }
 
 // Function to read celestial objects from a file
@@ -100,11 +109,12 @@ void AsteroidDash::read_celestial_objects(const string &input_file)
     ifstream file(input_file);
     string line;
     int start_row = 0, time_step = 0;
-    bool is_asteroid = (line[0] == '[');
+    CelestialObject *tail = nullptr;
 
     while (getline(file, line))
     {
         ObjectType type;
+        bool is_asteroid = (line[0] == '[');
         // we need celestial objects if starts with [ its an asteroid
         if (is_asteroid)
         {
@@ -117,52 +127,72 @@ void AsteroidDash::read_celestial_objects(const string &input_file)
         }
         vector<vector<bool>> shape;
         // traverse the celestial object until the end character to get the shape
-        while (line.back() != '}' && line.back() != ']' && getline(file, line))
+        do
         {
             vector<bool> row;
             for (char c : line)
             {
-                if (c == 1 || c == 0)
+                if (c == '1' || c == '0')
                 {
-                    row.push_back(c == 1);
+                    row.push_back(c == '1');
                 }
             }
             shape.push_back(row);
-        }
+        } while (line.back() != '}' && line.back() != ']' && getline(file, line));
         // s is the starting  row of the top left corner of the object
         // t is the tick or time step in the game when the object should begin entering
         // read the additional data provided with the celestial object
-        while (getline(file, line))
+        while (getline(file, line) && !line.empty())
         {
             istringstream iss(line);
-            char e_type;
-            string extra_type;
-            // get the additional info
+            char prefix;
+
             if (line.find(':') != string::npos)
             {
-                if (line[0] == 's')
+                // Parse the prefix (s, t, or e) and corresponding value
+                iss >> prefix;
+                iss.ignore(1, ':'); // Ignore the colon
+
+                if (prefix == 's')
                 {
-                    start_row = line[2];
+                    iss >> start_row; // Read start row as an integer
                 }
-                else if (line[0] == 't')
+                else if (prefix == 't')
                 {
-                    time_step = line[2];
+                    iss >> time_step; // Read time step as an integer
                 }
-                else if (line[0] == 'e')
+                else if (prefix == 'e')
                 {
-                    iss >> e_type >> extra_type;
-                    type = (extra_type == "ammo") ? AMMO : LIFE_UP;
+                    string extra_type;
+                    iss >> extra_type;
+                    if (extra_type == "ammo")
+                    {
+                        type = AMMO;
+                    }
+                    else if (extra_type == "life")
+                    {
+                        type = LIFE_UP;
+                    }
                 }
             }
         }
         // create new celestial object
         CelestialObject *new_celestial_object = new CelestialObject(shape, type, start_row, time_step);
 
-        // link the created celestial object to the linked list
-        new_celestial_object->next_celestial_object = celestial_objects_list_head;
-        celestial_objects_list_head = new_celestial_object;
+        // Append to the end of the linked list
+        if (!celestial_objects_list_head)
+        {
+            celestial_objects_list_head = new_celestial_object; // Initialize head if list is empty
+            tail = new_celestial_object;                        // Set tail to new head
+        }
+        else
+        {
+            tail->next_celestial_object = new_celestial_object; // Append at the end
+            tail = new_celestial_object;                        // Update tail
+        }
     }
     file.close();
+    tail->next_celestial_object = nullptr;
 }
 
 // Print the entire space grid

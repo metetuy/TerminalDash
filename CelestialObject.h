@@ -2,6 +2,7 @@
 #define CELESTIALOBJECT_H
 
 #include <vector>
+#include <iostream>
 
 using namespace std;
 
@@ -42,6 +43,8 @@ public:
 
     // The step in the game after which the object will appear on the grid
     int time_of_appearance;
+
+    void initialize_rotations();
 
     static std::vector<std::vector<bool>> rotate_shape_90(const std::vector<std::vector<bool>> &shape);
 
