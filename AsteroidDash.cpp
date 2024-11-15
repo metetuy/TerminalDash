@@ -288,7 +288,14 @@ void AsteroidDash::update_space_grid()
     {
         // make projectile move to the right
         space_grid[projectiles[i].row][projectiles[i].col] = 1;
-        projectiles[i].col++;
+        if (projectiles[i].col + 1 < space_grid[0].size())
+        {
+            projectiles[i].col++;
+        }
+        else
+        {
+            projectiles[i].col = 0;
+        }
         /*
         // out of bounds or collision check
         if (projectiles[i].col >= space_grid[0].size())
