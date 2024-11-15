@@ -51,5 +51,9 @@
         "streambuf": "cpp",
         "typeinfo": "cpp"
     },
-    "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools"
+    "C_Cpp.default.configurationProvider": "ms-vscode.makefile-tools",
+    "terminal.integrated.env.windows": {
+    "PATH": "C:\\ProgramData\\chocolatey\\bin;${env:PATH}"
+}
+
 }

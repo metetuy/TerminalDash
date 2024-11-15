@@ -8,11 +8,6 @@
 void Leaderboard::read_from_file(const string &filename)
 {
     ifstream file(filename);
-    if (!file)
-    {
-        cerr << "Error: Could not open file " << filename << endl;
-        return;
-    }
 
     unsigned long score;
     time_t lastPlayed;
@@ -35,11 +30,6 @@ void Leaderboard::read_from_file(const string &filename)
 void Leaderboard::write_to_file(const string &filename)
 {
     ofstream file(filename);
-    if (!file)
-    {
-        cerr << "Error: Could not open file " << filename << endl;
-        return;
-    }
 
     LeaderboardEntry *current = head_leaderboard_entry;
     while (current != nullptr)

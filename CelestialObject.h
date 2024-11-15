@@ -25,6 +25,8 @@ public:
 
     // Shape of the object represented as a 2D boolean vector
     vector<vector<bool>> shape;
+    
+    std::vector<CelestialObject *> rotations;
 
     // Pointer to the object's clockwise neighbor (its right rotation)
     CelestialObject *right_rotation = nullptr;
@@ -44,7 +46,19 @@ public:
     // The step in the game after which the object will appear on the grid
     int time_of_appearance;
 
-    void initialize_rotations();
+    // Helper function to print the shape of a celestial object
+    static void print_shape(const std::vector<std::vector<bool>> &shape)
+    {
+        for (const auto &row : shape)
+        {
+            for (bool cell : row)
+            {
+                std::cout << (cell ? "1" : "0") << " ";
+            }
+            std::cout << std::endl;
+        }
+        std::cout << "----" << std::endl; // Separator for clarity
+    }
 
     static std::vector<std::vector<bool>> rotate_shape_90(const std::vector<std::vector<bool>> &shape);
 

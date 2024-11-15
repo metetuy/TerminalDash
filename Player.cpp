@@ -33,6 +33,7 @@ void Player::move_right(int grid_width)
 void Player::move_up()
 {
     // Ensure the player does not go out of bounds at the top
+
     if (position_row > 0)
     {
         position_row--;

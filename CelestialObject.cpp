@@ -10,11 +10,10 @@ CelestialObject::CelestialObject(const vector<vector<bool>> &shape, ObjectType t
 
 // Copy constructor for CelestialObject
 CelestialObject::CelestialObject(const CelestialObject *other)
-    : shape(other->shape),                           // Copy the 2D vector shape
-      object_type(other->object_type),               // Copy the object type
-      starting_row(other->starting_row),             // Copy the starting row
-      time_of_appearance(other->time_of_appearance), // Copy the time of appearance
-      next_celestial_object(other->next_celestial_object)
+    : shape(other->shape),                          // Copy the 2D vector shape
+      object_type(other->object_type),              // Copy the object type
+      starting_row(other->starting_row),            // Copy the starting row
+      time_of_appearance(other->time_of_appearance) // Copy the time of appearance
 {
 }
 
@@ -43,20 +42,18 @@ void CelestialObject::create_rotations(CelestialObject *object)
 {
 
     CelestialObject *current = object;
-    std::vector<CelestialObject *> rotations; // Store rotations to check for duplicates.
+    // Store rotations to check for duplicates.
+    current->rotations.push_back(current);
 
-    for (int i = 0; i < 3; ++i)
+    for (int i = 0; i < 3; i++)
     {
         // Rotate the shape 90 degrees
         std::vector<std::vector<bool>> rotated_shape = rotate_shape_90(current->shape);
         CelestialObject *rotation = new CelestialObject(current);
         rotation->shape = rotated_shape;
-
-
-
         // Check for duplicates
         bool is_duplicate = false;
-        for (auto &prev_rotation : rotations)
+        for (auto &prev_rotation : object->rotations)
         {
             if (rotation->shape == prev_rotation->shape)
             {
@@ -71,8 +68,8 @@ void CelestialObject::create_rotations(CelestialObject *object)
             continue;        // Skip adding this rotation.
         }
 
-        // Add the prev rotation to the list
-        rotations.push_back(current);
+        // Add the current rotation to the list
+        object->rotations.push_back(rotation);
 
         // Link the current object to the new rotation
         if (rotation->shape == current->shape)
@@ -86,7 +83,6 @@ void CelestialObject::create_rotations(CelestialObject *object)
             current->right_rotation = rotation;
             rotation->left_rotation = current;
         }
-
 
         // Move to the next rotation
         current = rotation;

@@ -15,7 +15,7 @@ AsteroidDash::AsteroidDash(const string &space_grid_file_name,
     read_celestial_objects(celestial_objects_file_name); // Load celestial objects
     leaderboard.read_from_file(leaderboard_file_name);
 }
-
+/*
 bool AsteroidDash::check_collision(int row, int col)
 {
     // Check every celestial objects position
@@ -40,6 +40,7 @@ bool AsteroidDash::check_collision(int row, int col)
     }
     return false;
 }
+*/
 
 // Function to read the space grid from a file
 void AsteroidDash::read_space_grid(const string &input_file)
@@ -95,11 +96,6 @@ void AsteroidDash::read_player(const string &player_file_name, const string &pla
     }
     file.close();
 
-    if (player != nullptr)
-    {
-        delete player;
-    }
-
     player = new Player(shape, start_row, start_col, player_name);
 }
 
@@ -110,7 +106,10 @@ void AsteroidDash::read_celestial_objects(const string &input_file)
     string line;
     int start_row = 0, time_step = 0;
     CelestialObject *tail = nullptr;
-
+    if (file.peek() == ifstream::traits_type::eof())
+    {
+        return;
+    }
     while (getline(file, line))
     {
         ObjectType type;
@@ -193,6 +192,20 @@ void AsteroidDash::read_celestial_objects(const string &input_file)
     }
     file.close();
     tail->next_celestial_object = nullptr;
+
+    CelestialObject *node = celestial_objects_list_head;
+    while (node != nullptr)
+    {
+        if (node->next_celestial_object != nullptr)
+        {
+
+            for (int i = 0; i < node->rotations.size(); i++)
+            {
+                node->rotations[i]->next_celestial_object = node->next_celestial_object;
+            }
+        }
+        node = node->next_celestial_object; // Move to the next node
+    }
 }
 
 // Print the entire space grid
@@ -204,7 +217,14 @@ void AsteroidDash::print_space_grid() const
     {
         for (int value : row)
         {
-            cout << value << " ";
+            if (value == 1)
+            {
+                cout << occupiedCellChar;
+            }
+            else
+            {
+                cout << unoccupiedCellChar;
+            }
         }
         cout << endl;
     }
@@ -227,17 +247,15 @@ void AsteroidDash::update_space_grid()
     int p_start_row = player->position_row;
     int p_start_col = player->position_col;
 
-    for (int i = 0; i < space_grid.size(); i++)
+    for (int i = 0; i < player->spacecraft_shape.size(); i++)
     {
-        for (int j = 0; j < space_grid[i].size(); j++)
+        for (int j = 0; j < player->spacecraft_shape[i].size(); j++)
         {
-            if (space_grid.size() > p_start_row + i && space_grid[i].size() > p_start_col + j)
-            {
-                space_grid[p_start_row + i][p_start_col + j] = 1;
-            }
+            space_grid[p_start_row + i][p_start_col + j] = player->spacecraft_shape[i][j];
         }
     }
 
+    /*
     // get the celestial objects
     CelestialObject *celestial_object = celestial_objects_list_head;
     while (celestial_object != nullptr)
@@ -264,13 +282,14 @@ void AsteroidDash::update_space_grid()
         // next celestial object
         celestial_object = celestial_object->next_celestial_object;
     }
-
+*/
     // update projectiles and detect collisions
     for (int i = 0; i < projectiles.size(); i++)
     {
         // make projectile move to the right
+        space_grid[projectiles[i].row][projectiles[i].col] = 1;
         projectiles[i].col++;
-
+        /*
         // out of bounds or collision check
         if (projectiles[i].col >= space_grid[0].size())
         {
@@ -318,11 +337,11 @@ void AsteroidDash::update_space_grid()
 
             // Decrement `i` to stay at the same index after removing a projectile
             i--;
-        }
+        */
     }
-
     // increment game time
-    game_time++;
+
+    // game_time++;
 }
 
 // Corresponds to the SHOOT command.
@@ -330,12 +349,13 @@ void AsteroidDash::update_space_grid()
 // It should decrease the player's ammo
 void AsteroidDash::shoot()
 {
+
     if (player->current_ammo > 0)
     {
 
         // shooting should be from the center row of the vehicle and starts from the front of the vehicle
         int center_row = player->position_row + player->spacecraft_shape.size() / 2;
-        int front_col = player->position_col + player->spacecraft_shape[center_row].size();
+        int front_col = player->position_col + player->spacecraft_shape[0].size();
 
         // add the Projectile to the projectiles list
         projectiles.emplace_back(center_row, front_col);
