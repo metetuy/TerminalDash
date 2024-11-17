@@ -653,7 +653,6 @@ void object_movements()
     for (int i = 0; i < 26; i++)
     {
         game->update_space_grid();
-
         if (game->space_grid == expected_frames[i])
         {
             total_score += 1;

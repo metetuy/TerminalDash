@@ -15,32 +15,8 @@ AsteroidDash::AsteroidDash(const string &space_grid_file_name,
     read_celestial_objects(celestial_objects_file_name); // Load celestial objects
     leaderboard.read_from_file(leaderboard_file_name);
 }
-/*
-bool AsteroidDash::check_collision(int row, int col)
-{
-    // Check every celestial objects position
-    CelestialObject *celestial_object = celestial_objects_list_head;
-    while (celestial_object != nullptr)
-    {
-        int c_start_row = celestial_object->starting_row;
-        int c_start_col = space_grid[c_start_row].size() - 1 - (game_time - celestial_object->time_of_appearance);
 
-        // Loop through the celestial objects shape and control if the row and col is occupied or not
-        for (int i = 0; i < celestial_object->shape.size(); i++)
-        {
-            for (int j = 0; j < celestial_object->shape[i].size(); j++)
-            {
-                if (celestial_object->shape[i][j] && c_start_row + i == row && c_start_col + j == col)
-                {
-                    return true;
-                }
-            }
-        }
-        celestial_object = celestial_object->next_celestial_object;
-    }
-    return false;
-}
-*/
+
 
 // Function to read the space grid from a file
 void AsteroidDash::read_space_grid(const string &input_file)
@@ -234,6 +210,7 @@ void AsteroidDash::print_space_grid() const
 // It is called in every game tick before moving on to the next tick.
 void AsteroidDash::update_space_grid()
 {
+    CelestialObject *celestial_object = celestial_objects_list_head;
     // clear the space grid
     for (int i = 0; i < space_grid.size(); i++)
     {
@@ -246,109 +223,74 @@ void AsteroidDash::update_space_grid()
     // place the player
     int p_start_row = player->position_row;
     int p_start_col = player->position_col;
+    bool asteroid_hit = false;
+    bool power_up_hit = false;
 
     for (int i = 0; i < player->spacecraft_shape.size(); i++)
     {
         for (int j = 0; j < player->spacecraft_shape[i].size(); j++)
         {
-            space_grid[p_start_row + i][p_start_col + j] = player->spacecraft_shape[i][j];
+            int grid_row = p_start_row + i;
+            int grid_col = p_start_col + j;
+            space_grid[grid_row][grid_col] = player->spacecraft_shape[i][j];
         }
     }
 
-    /*
-    // get the celestial objects
-    CelestialObject *celestial_object = celestial_objects_list_head;
+    // Update the grid with celestial objects;
+
     while (celestial_object != nullptr)
     {
-        // implement the time step
+        // Place the celestial object only if it has appeared
         if (celestial_object->time_of_appearance <= game_time)
         {
             int start_row = celestial_object->starting_row;
-            // start_col=last index of the row - the amount it needs to go left
             int start_col = space_grid[0].size() - 1 - (game_time - celestial_object->time_of_appearance);
 
-            // place objects
+            // Place the celestial object's shape into the grid
             for (int i = 0; i < celestial_object->shape.size(); i++)
             {
                 for (int j = 0; j < celestial_object->shape[i].size(); j++)
                 {
-                    if ((start_col + j) < space_grid[i].size() && (start_row + i) < space_grid.size())
+                    // Calculate the actual row and column in the grid
+                    int grid_row = start_row + i;
+                    int grid_col = start_col + j;
+
+                    // Ensure the shape is within bounds
+                    if (grid_row >= 0 && grid_row < space_grid.size() &&
+                        grid_col >= 0 && grid_col < space_grid[0].size())
                     {
-                        space_grid[start_row + i][start_col + j] = 1;
+                        // Place the shape's cell into the grid if it is "occupied"
+                        if (celestial_object->shape[i][j])
+                        {
+                            space_grid[grid_row][grid_col] = celestial_object->shape[i][j];
+                        }
                     }
                 }
             }
         }
-        // next celestial object
+        // Move to the next celestial object in the list
         celestial_object = celestial_object->next_celestial_object;
     }
-*/
-    // update projectiles and detect collisions
+
     for (int i = 0; i < projectiles.size(); i++)
     {
-        // make projectile move to the right
-        space_grid[projectiles[i].row][projectiles[i].col] = 1;
+
+        if (projectiles[i].col < space_grid[0].size() && projectiles[i].row < space_grid.size())
+        {
+            space_grid[projectiles[i].row][projectiles[i].col] = 1; // Update new position
+        }
         if (projectiles[i].col + 1 < space_grid[0].size())
         {
-            projectiles[i].col++;
+            projectiles[i].col++; // Move the projectile to the right
         }
         else
         {
-            projectiles[i].col = 0;
+            // If the projectile goes out of bounds, remove it from the list
+            projectiles.erase(projectiles.begin() + i);
+            i--;      // Adjust index to account for the removed projectile
+            continue; // Skip further processing for this projectile
         }
-        /*
-        // out of bounds or collision check
-        if (projectiles[i].col >= space_grid[0].size())
-        {
-            if (check_collision(projectiles[i].row, projectiles[i].col))
-            {
-                // handle collisions
-                CelestialObject *celestial_object = celestial_objects_list_head;
-                while (celestial_object != nullptr)
-                {
-                    int o_start_row = celestial_object->starting_row;
-                    int o_start_col = space_grid[0].size() - 1 - (game_time - celestial_object->time_of_appearance);
-
-                    for (int m = 0; m < celestial_object->shape.size(); m++)
-                    {
-                        for (int n = 0; n < celestial_object->shape[m].size(); n++)
-                        {
-                            if (check_collision(m, n))
-                            {
-
-                                int o_center_row = o_start_row + celestial_object->shape.size() / 2;
-                                if (projectiles[i].row < o_center_row)
-                                {
-                                    if (celestial_object->right_rotation)
-                                    {
-
-                                        celestial_object = celestial_object->right_rotation;
-                                    }
-                                }
-                                else
-                                {
-                                    if (celestial_object->left_rotation)
-                                    {
-                                        celestial_object = celestial_object->left_rotation;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    celestial_object = celestial_object->next_celestial_object;
-                }
-            }
-            // determine which rotation based on above the center row or below the center row
-            projectiles[i] = projectiles.back();
-            projectiles.pop_back();
-
-            // Decrement `i` to stay at the same index after removing a projectile
-            i--;
-        */
     }
-    // increment game time
-
-    // game_time++;
 }
 
 // Corresponds to the SHOOT command.
