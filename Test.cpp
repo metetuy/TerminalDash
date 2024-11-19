@@ -1,5 +1,6 @@
 #include "Test.h"
 
+
 // "initialize_grid" // 2.5%
 void initialize_grid()
 {
@@ -1087,9 +1088,7 @@ void display_results()
 // Main function to map command-line arguments to test functions
 int main(int argc, char *argv[])
 {
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-    SetConsoleOutputCP(CP_UTF8);
-#endif
+
     if (argc != 2)
     {
         cerr << "Usage: " << argv[0] << " <test_name>\n";

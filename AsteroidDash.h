@@ -7,7 +7,6 @@
 #include <fstream>
 #include <sstream>
 
-
 #include "CelestialObject.h"
 #include "LeaderboardEntry.h"
 #include "Leaderboard.h"
@@ -64,9 +63,12 @@ public:
     // True if the game is over
     bool game_over = false;
 
-    // Function to detect collisions
+    // Helper function to delete celestial object in case of a collision;
+    void erase(CelestialObject *object);
+
+    // Function to detect collisions(checks if celestial objects grid_row is equal to the asked row and grid_col is equal to asked col)
     bool check_collision(int row, int col);
-    
+
     // Function to print the space_grid
     void print_space_grid() const;
 
@@ -79,7 +81,6 @@ public:
     // Function to read celestial objects from a file
     // Reads the input file and calls the read_celestial_object() function for each celestial_object;
     void read_celestial_objects(const string &input_file);
-
 
     // Updates the grid based on player and celestial object states
     void update_space_grid();
