@@ -74,7 +74,7 @@ bool AsteroidDash::check_projectile_collision(int row, int col)
 {
     for (int i = 0; i < projectiles.size(); i++)
     {
-        if (projectiles[i].row == row && projectiles[i].col == col)
+        if (projectiles[i].row == row && projectiles[i].col + 1 == col && projectiles[i].col + 1 < space_grid[0].size())
         {
             return true;
         }
@@ -313,26 +313,6 @@ void AsteroidDash::update_space_grid()
         }
     }
 
-    // Place the projectiles
-    for (int i = 0; i < projectiles.size(); i++)
-    {
-        // Check if the projectile is within bounds before updating the grid
-        if (projectiles[i].col < space_grid[0].size() && projectiles[i].row < space_grid.size())
-        {
-            space_grid[projectiles[i].row][projectiles[i].col] = 1; // Update new position
-        }
-        if (projectiles[i].col + 1 < space_grid[0].size())
-        {
-            projectiles[i].col++; // Move the projectile to the right
-        }
-        else
-        {
-            // If the projectile goes out of bounds, remove it from the list
-            projectiles.erase(projectiles.begin() + i);
-            i--; // Adjust index to account for the removed projectile
-        }
-    }
-
     // Place the celestial objects
     CelestialObject *celestial_object = celestial_objects_list_head;
     while (celestial_object != nullptr)
@@ -382,11 +362,10 @@ void AsteroidDash::update_space_grid()
                         // Handle projectile collision with celestial objects
                         else if (check_projectile_collision(grid_row, grid_col) && celestial_object->shape[i][j] == 1 && celestial_object->object_type == ASTEROID)
                         {
-                            cout << "Projectile Collision detected at (" << grid_row << ", " << grid_col << ")" << endl;
                             // Find which projectile caused the collision
                             for (int p = 0; p < projectiles.size(); p++)
                             {
-                                if (projectiles[p].row == grid_row && projectiles[p].col == grid_col)
+                                if (projectiles[p].row == grid_row && projectiles[p].col + 1 == grid_col)
                                 {
                                     // Remove the projectile
                                     projectiles.erase(projectiles.begin() + p);
@@ -459,6 +438,30 @@ void AsteroidDash::update_space_grid()
             }
         }
         celestial_object = celestial_object->next_celestial_object; // Update the iterator
+    }
+
+    // Place the projectiles
+    for (int i = 0; i < projectiles.size(); i++)
+    {
+        // Check if the projectile is within bounds before updating the grid
+        if (projectiles[i].col < space_grid[0].size() && projectiles[i].row < space_grid.size())
+        {
+            space_grid[projectiles[i].row][projectiles[i].col] = 1; // Update new position
+        }
+    }
+
+    for (int i = 0; i < projectiles.size(); i++)
+    {
+        if (projectiles[i].col + 1 < space_grid[0].size())
+        {
+            projectiles[i].col++; // Move the projectile to the right
+        }
+        else
+        {
+            // If the projectile goes out of bounds, remove it from the list
+            projectiles.erase(projectiles.begin() + i);
+            i--; // Adjust index to account for the removed projectile
+        }
     }
 }
 
