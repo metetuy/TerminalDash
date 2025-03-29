@@ -8,10 +8,6 @@
 // from command line arguments
 int main(int argc, char** argv) {
     
-    #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-        SetConsoleOutputCP(CP_UTF8);
-    #endif
-    
     string space_grid_file = argv[1];
     string celestial_objects_file = argv[2];
     string player_file = argv[3];
@@ -26,7 +22,9 @@ int main(int argc, char** argv) {
         player_file,
         player_name);
 		
+    std::cout << "Starting the game...\n";
     controller->play(commands_file);
+    std::cout << "Game finished.\n";
     delete controller;
 
 }

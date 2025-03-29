@@ -70,16 +70,31 @@ void AsteroidDash::erase(CelestialObject *object)
     delete object;
 }
 
-bool AsteroidDash::check_collision(int row, int col)
+bool AsteroidDash::check_projectile_collision(int row, int col)
 {
-    if (space_grid[row][col] == 1)
+    for (int i = 0; i < projectiles.size(); i++)
     {
-        return true;
+        if (projectiles[i].row == row && projectiles[i].col == col)
+        {
+            return true;
+        }
     }
-    else
+    return false;
+}
+
+bool AsteroidDash::check_player_collision(int row, int col)
+{
+    for (int i = 0; i < player->spacecraft_shape.size(); i++)
     {
-        return false;
+        for (int j = 0; j < player->spacecraft_shape[i].size(); j++)
+        {
+            if (player->spacecraft_shape[i][j] == 1 && row == player->position_row + i && col == player->position_col + j)
+            {
+                return true;
+            }
+        }
     }
+    return false;
 }
 
 // Function to read the space grid from a file
@@ -251,8 +266,6 @@ void AsteroidDash::read_celestial_objects(const string &input_file)
 // Print the entire space grid
 void AsteroidDash::print_space_grid() const
 {
-
-    // TODO: Your code here
     for (const auto &row : space_grid)
     {
         for (int value : row)
@@ -299,9 +312,29 @@ void AsteroidDash::update_space_grid()
             space_grid[p_start_row + i][p_start_col + j] = player->spacecraft_shape[i][j];
         }
     }
+
+    // Place the projectiles
+    for (int i = 0; i < projectiles.size(); i++)
+    {
+        // Check if the projectile is within bounds before updating the grid
+        if (projectiles[i].col < space_grid[0].size() && projectiles[i].row < space_grid.size())
+        {
+            space_grid[projectiles[i].row][projectiles[i].col] = 1; // Update new position
+        }
+        if (projectiles[i].col + 1 < space_grid[0].size())
+        {
+            projectiles[i].col++; // Move the projectile to the right
+        }
+        else
+        {
+            // If the projectile goes out of bounds, remove it from the list
+            projectiles.erase(projectiles.begin() + i);
+            i--; // Adjust index to account for the removed projectile
+        }
+    }
+
     // Place the celestial objects
     CelestialObject *celestial_object = celestial_objects_list_head;
-
     while (celestial_object != nullptr)
     {
         if (celestial_object->time_of_appearance <= game_time)
@@ -323,9 +356,9 @@ void AsteroidDash::update_space_grid()
                         grid_col >= 0 && grid_col < space_grid[0].size())
                     {
                         // Check for collisions
-                        if (check_collision(grid_row, grid_col) && celestial_object->shape[i][j] == 1)
+                        if (check_player_collision(grid_row, grid_col) && celestial_object->shape[i][j] == 1)
                         {
-                            // Handle collision
+                            // Handle player collision
                             if (celestial_object->object_type == ASTEROID)
                             {
                                 player->lives--;
@@ -344,6 +377,58 @@ void AsteroidDash::update_space_grid()
                             celestial_object = temp;
                             should_erase = true;
                             break;
+                        }
+
+                        // Handle projectile collision with celestial objects
+                        else if (check_projectile_collision(grid_row, grid_col) && celestial_object->shape[i][j] == 1 && celestial_object->object_type == ASTEROID)
+                        {
+                            cout << "Projectile Collision detected at (" << grid_row << ", " << grid_col << ")" << endl;
+                            // Find which projectile caused the collision
+                            for (int p = 0; p < projectiles.size(); p++)
+                            {
+                                if (projectiles[p].row == grid_row && projectiles[p].col == grid_col)
+                                {
+                                    // Remove the projectile
+                                    projectiles.erase(projectiles.begin() + p);
+                                    p--;
+                                    break; // Exit the projectile loop after handling collision
+                                }
+                            }
+
+                            celestial_object->shape[i][j] = 0; // Mark the hit part as destroyed
+
+                            // Check if the celestial object is completely destroyed
+                            bool is_destroyed = true;
+                            for (int k = 0; k < celestial_object->shape.size(); k++)
+                            {
+                                for (int l = 0; l < celestial_object->shape[k].size(); l++)
+                                {
+                                    if (celestial_object->shape[k][l] == 1)
+                                    {
+                                        is_destroyed = false;
+                                        break;
+                                    }
+                                }
+                                if (!is_destroyed)
+                                    break;
+                            }
+
+                            if (is_destroyed)
+                            {
+                                // Erase the celestial object if it is completely destroyed
+                                CelestialObject *temp = celestial_object->next_celestial_object;
+                                erase(celestial_object);
+                                celestial_object = temp;
+                                should_erase = true;
+                            }
+                            else
+                            {
+                                // Rotate the celestial object
+                                rotate_celestial(celestial_object, grid_row, grid_col);
+                            }
+
+                            if (should_erase)
+                                break; // Exit the shape loop if object was erased
                         }
                     }
                 }
@@ -373,28 +458,47 @@ void AsteroidDash::update_space_grid()
                 }
             }
         }
-
         celestial_object = celestial_object->next_celestial_object; // Update the iterator
     }
+}
 
-    for (int i = 0; i < projectiles.size(); i++)
+void AsteroidDash::rotate_celestial(CelestialObject *object, int hit_row, int hit_col)
+{
+    // Create rotations for the new design of the object
+    CelestialObject delete_rotations(object);
+    CelestialObject create_rotations(object);
+
+    // Rotate the celestial object and update its shape in the space grid
+    if (object == nullptr)
     {
+        return;
+    }
 
-        if (projectiles[i].col < space_grid[0].size() && projectiles[i].row < space_grid.size())
-        {
-            space_grid[projectiles[i].row][projectiles[i].col] = 1; // Update new position
-        }
-        if (projectiles[i].col + 1 < space_grid[0].size())
-        {
-            projectiles[i].col++; // Move the projectile to the right
-        }
-        else
-        {
-            // If the projectile goes out of bounds, remove it from the list
-            projectiles.erase(projectiles.begin() + i);
+    // Check if rotations are available
+    if (object->right_rotation == nullptr || object->left_rotation == nullptr)
+    {
+        return; // Can't rotate if rotations aren't properly defined
+    }
 
-            i--; // Adjust index to account for the removed projectile
-        }
+    // Calculate the object's dimensions
+    int object_height = object->shape.size();
+    int start_row = object->starting_row;
+    int middle_row = start_row + (object_height / 2);
+
+    if (hit_row < middle_row)
+    {
+        // Hit above the middle line - rotate right
+        object->shape = object->right_rotation->shape;
+    }
+    else if (hit_row == middle_row)
+    {
+        // do nothing - hit at the middle line
+        return;
+    }
+    else if (hit_row > middle_row)
+    {
+        // Hit below or at the middle line - rotate left
+        object->shape = object->left_rotation->shape;
     }
 }
 
@@ -426,7 +530,7 @@ void AsteroidDash::shoot()
 // Destructor. Remove dynamically allocated member variables here.
 AsteroidDash::~AsteroidDash()
 {
-    // free the memory allocated for celestial objects
+    // Free the memory allocated for celestial objects
     CelestialObject *celestial_object = celestial_objects_list_head;
 
     while (celestial_object != nullptr)

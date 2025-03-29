@@ -67,7 +67,9 @@ public:
     void erase(CelestialObject *object);
 
     // Function to detect collisions(checks if celestial objects grid_row is equal to the asked row and grid_col is equal to asked col)
-    bool check_collision(int row, int col);
+    bool check_projectile_collision(int row, int col);
+
+    bool check_player_collision(int row, int col);
 
     // Function to print the space_grid
     void print_space_grid() const;
@@ -84,6 +86,9 @@ public:
 
     // Updates the grid based on player and celestial object states
     void update_space_grid();
+
+    // Function to rotate the celestial object
+    void rotate_celestial(CelestialObject *object, int hit_row, int hit_col);
 
     // Corresponds to the SHOOT command.
     void shoot();

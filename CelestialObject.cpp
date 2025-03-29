@@ -93,6 +93,7 @@ void CelestialObject::create_rotations(CelestialObject *object)
     object->left_rotation = current;
 }
 
+
 void CelestialObject::delete_rotations(CelestialObject *target)
 {
 
