@@ -41,6 +41,11 @@ vector<std::vector<bool>> CelestialObject::rotate_shape_90(const std::vector<std
 void CelestialObject::create_rotations(CelestialObject *object)
 {
 
+    // Delete the previous rotations if they exist
+    if (object->right_rotation != nullptr)
+    {
+        delete_rotations(object);
+    }
     CelestialObject *current = object;
     // Store rotations to check for duplicates.
     current->rotations.push_back(current);
@@ -92,7 +97,6 @@ void CelestialObject::create_rotations(CelestialObject *object)
     current->right_rotation = object;
     object->left_rotation = current;
 }
-
 
 void CelestialObject::delete_rotations(CelestialObject *target)
 {

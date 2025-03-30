@@ -74,7 +74,8 @@ bool AsteroidDash::check_projectile_collision(int row, int col)
 {
     for (int i = 0; i < projectiles.size(); i++)
     {
-        if (projectiles[i].row == row && projectiles[i].col + 1 == col && projectiles[i].col + 1 < space_grid[0].size())
+        if ((projectiles[i].row == row && projectiles[i].col + 1 == col && projectiles[i].col + 1 < space_grid[0].size()) ||
+            (projectiles[i].row == row && projectiles[i].col == col && projectiles[i].col < space_grid[0].size()))
         {
             return true;
         }
@@ -103,7 +104,6 @@ void AsteroidDash::read_space_grid(const string &input_file)
 
     ifstream file(input_file);
 
-    // TODO: Your code here
     string line;
     // read the file line by line
     while (getline(file, line))
@@ -467,11 +467,8 @@ void AsteroidDash::update_space_grid()
 
 void AsteroidDash::rotate_celestial(CelestialObject *object, int hit_row, int hit_col)
 {
-    // Create rotations for the new design of the object
-    CelestialObject delete_rotations(object);
-    CelestialObject create_rotations(object);
-
-    // Rotate the celestial object and update its shape in the space grid
+    CelestialObject::create_rotations(object); // Create rotations for the shape of the object
+    // Check if the object is null
     if (object == nullptr)
     {
         return;
@@ -488,21 +485,24 @@ void AsteroidDash::rotate_celestial(CelestialObject *object, int hit_row, int hi
     int start_row = object->starting_row;
     int middle_row = start_row + (object_height / 2);
 
+    // Determine the rotation direction
     if (hit_row < middle_row)
     {
         // Hit above the middle line - rotate right
         object->shape = object->right_rotation->shape;
     }
-    else if (hit_row == middle_row)
-    {
-        // do nothing - hit at the middle line
-        return;
-    }
     else if (hit_row > middle_row)
     {
-        // Hit below or at the middle line - rotate left
+        // Hit below the middle line - rotate left
         object->shape = object->left_rotation->shape;
     }
+    else
+    {
+        // Hit at the middle line - no rotation
+        return;
+    }
+
+    // Update the object's shape with the combined shape
 }
 
 // Corresponds to the SHOOT command.

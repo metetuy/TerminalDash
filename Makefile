@@ -9,9 +9,8 @@ HEADER_GCH = $(wildcard *.gch)
 
 # Default space grid and other files
 SPACE_GRID = sample_io/sample_shooting_update_space_grid.dat
-CELESTIAL_OBJECTS = sample_io/sample_shooting_update_celestial_objects.dat
-PLAYER_FILE = sample_io/sample_shooting_update_player.dat
-COMMANDS_FILE = sample_io/sample_shooting_update_commands.dat
+CELESTIAL_OBJECTS = sample_io/sample_celestial_objects.dat
+PLAYER_FILE = sample_io/sample_player.dat
 LEADERBOARD_FILE = leaderboard.txt
 PLAYER_NAME = Player1
 
@@ -30,7 +29,7 @@ game: main.cpp $(filter-out Test.cpp, $(SOURCES)) $(HEADERS)
 	$(CC) $(CFLAGS) main.cpp $(filter-out Test.cpp, $(SOURCES)) $(LDFLAGS) -o $@
 
 run: game
-	./game $(SPACE_GRID) $(CELESTIAL_OBJECTS) $(PLAYER_FILE) $(COMMANDS_FILE) $(LEADERBOARD_FILE) $(PLAYER_NAME)
+	./game $(SPACE_GRID) $(CELESTIAL_OBJECTS) $(PLAYER_FILE) $(LEADERBOARD_FILE) $(PLAYER_NAME)
 
 clean:
 	rm -f $(TESTS) $(GAME) $(HEADER_GCH)

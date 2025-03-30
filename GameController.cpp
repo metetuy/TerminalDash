@@ -1,5 +1,6 @@
 #include "GameController.h"
 #include <parallel/compatibility.h>
+#include <conio.h> // For kbhit() and getch()
 
 // Simply instantiates the game
 GameController::GameController(
@@ -29,45 +30,61 @@ GameController::GameController(
 }
 
 // Reads commands from the given input file, executes each command in a game tick
-void GameController::play(const string &commands_file)
+void GameController::play()
 {
-    ifstream file(commands_file);
-    if (!file)
-    {
-        cerr << "Failed to open commands file: " << commands_file << endl;
-        return;
-    }
+    cout << "Game started! Use the following keys to control the game:" << endl;
+    cout << "W: Move Up | A: Move Left | S: Move Down | D: Move Right | Space: Shoot | Q: Quit" << endl;
 
-    string command;
-    while (file >> command && !game->game_over)
+    while (!game->game_over)
     {
         // Clear the console for better visualization
+        system("cls");
 
+        // Display game status
         cout << "Time: " << game->game_time << " | Lives: " << game->player->lives
              << " | Ammo: " << game->player->current_ammo << "/" << game->player->max_ammo << endl;
 
-        if (command == "MOVE_LEFT")
+        // Check for keyboard input
+        if (_kbhit()) // Check if a key is pressed
         {
-            game->player->move_left();
-        }
-        else if (command == "MOVE_RIGHT")
-        {
-            game->player->move_right(game->space_grid[0].size()); // Pass the grid width
-        }
-        else if (command == "MOVE_UP")
-        {
-            game->player->move_up();
-        }
-        else if (command == "MOVE_DOWN")
-        {
-            game->player->move_down(game->space_grid.size()); // Pass the grid height
-        }
-        else if (command == "SHOOT")
-        {
-            game->shoot();
+            char key = _getch(); // Get the pressed key
+
+            // Map key presses to game commands
+            if (key == 'a' || key == 'A')
+            {
+                game->player->move_left();
+            }
+            else if (key == 'd' || key == 'D')
+            {
+                game->player->move_right(game->space_grid[0].size()); // Pass the grid width
+            }
+            else if (key == 'w' || key == 'W')
+            {
+                game->player->move_up();
+            }
+            else if (key == 's' || key == 'S')
+            {
+                game->player->move_down(game->space_grid.size()); // Pass the grid height
+            }
+            else if (key == ' ') // Space key for shooting
+            {
+                game->shoot();
+            }
+            else if (key == 'q' || key == 'Q') // Quit the game
+            {
+                cout << "Quitting the game..." << endl;
+                game->game_over = true;
+                break;
+            }
+
+            // Clear the input buffer
+            while (_kbhit())
+            {
+                _getch(); // Consume any remaining characters in the buffer
+            }
         }
 
-        // Update the game state after each command
+        // Update the game state
         game->update_space_grid();
 
         // Print the current state of the space grid
@@ -75,9 +92,10 @@ void GameController::play(const string &commands_file)
 
         // Increment game time
         game->game_time++;
-    }
 
-    file.close();
+        // Add a small delay to control the game speed
+        Sleep(400);
+    }
 }
 
 // Destructor to delete dynamically allocated member variables here

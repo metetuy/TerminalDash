@@ -25,7 +25,7 @@ public:
 
     // Shape of the object represented as a 2D boolean vector
     vector<vector<bool>> shape;
-    
+
     std::vector<CelestialObject *> rotations;
 
     // Pointer to the object's clockwise neighbor (its right rotation)
@@ -64,6 +64,7 @@ public:
 
     // Function to create rotations for the celestial objects.
     static void create_rotations(CelestialObject *object);
+
 
     // Function to delete rotations of a given celestial object. It should free the dynamically allocated
     // space for each rotation.
