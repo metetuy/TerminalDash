@@ -1,13 +1,12 @@
 #include "GameController.h"
-
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 #include <windows.h>
-#endif
 
 // Main function that reads the necessary file names and the player name
 // from command line arguments
 int main(int argc, char **argv)
 {
+    SetConsoleOutputCP(CP_UTF8);
+    system("chcp 65001 > nul");
 
     string space_grid_file = argv[1];
     string celestial_objects_file = argv[2];
@@ -22,8 +21,6 @@ int main(int argc, char **argv)
         player_file,
         player_name);
 
-    std::cout << "Starting the game...\n";
     controller->play();
-    std::cout << "Game finished.\n";
     delete controller;
 }

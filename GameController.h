@@ -24,6 +24,7 @@ public:
 
     // Reads commands from the given input file, executes each command in a tick
     void play();
+    void print_game_over() const;
 
     // Destructor to delete dynamically allocated member variables here
     virtual ~GameController();

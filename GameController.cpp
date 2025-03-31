@@ -1,6 +1,7 @@
 #include "GameController.h"
 #include <parallel/compatibility.h>
-#include <conio.h> // For kbhit() and getch()
+#include <conio.h>
+#include <windows.h>
 
 // Simply instantiates the game
 GameController::GameController(
@@ -32,18 +33,10 @@ GameController::GameController(
 // Reads commands from the given input file, executes each command in a game tick
 void GameController::play()
 {
-    cout << "Game started! Use the following keys to control the game:" << endl;
-    cout << "W: Move Up | A: Move Left | S: Move Down | D: Move Right | Space: Shoot | Q: Quit" << endl;
+    system("cls"); // Clear the console for better visualization
 
     while (!game->game_over)
     {
-        // Clear the console for better visualization
-        system("cls");
-
-        // Display game status
-        cout << "Time: " << game->game_time << " | Lives: " << game->player->lives
-             << " | Ammo: " << game->player->current_ammo << "/" << game->player->max_ammo << endl;
-
         // Check for keyboard input
         if (_kbhit()) // Check if a key is pressed
         {
@@ -72,7 +65,7 @@ void GameController::play()
             }
             else if (key == 'q' || key == 'Q') // Quit the game
             {
-                cout << "Quitting the game..." << endl;
+                std::cout << "Quitting the game..." << std::endl;
                 game->game_over = true;
                 break;
             }
@@ -94,12 +87,63 @@ void GameController::play()
         game->game_time++;
 
         // Add a small delay to control the game speed
-        Sleep(400);
+        Sleep(150);
     }
+
+    // Print the game over message
+    system("cls"); // Clear the console for better visualization
+    print_game_over();
+
+    // Add the player's score to the leaderboard
+    unsigned long final_score = game->current_score; // Example scoring logic
+    game->leaderboard.insert(new LeaderboardEntry(final_score, time(nullptr), game->player->player_name));
+
+    // Save the leaderboard to a file
+    game->leaderboard.write_to_file(game->leaderboard_file_name);
+
+    // Display the leaderboard
+    std::cout << "\nLeaderboard:\n";
+    game->leaderboard.print_leaderboard();
 }
 
 // Destructor to delete dynamically allocated member variables here
 GameController::~GameController()
 {
     delete game; // Deallocate the AsteroidDash instance
+}
+
+void GameController::print_game_over() const
+{
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    COORD cursorPosition = {0, 0};
+    SetConsoleCursorPosition(hConsole, cursorPosition);
+
+    std::string occupied = occupiedCellChar; // Use the occupied cell character
+    std::string empty = unoccupiedCellChar;  // Use spaces for empty cells
+
+    // Define the "Game Over!" pattern
+    std::vector<std::string> game_over_pattern = {
+        "01111000111100011111100111110001111100110001101111101111110011",
+        "11000001100110110110110110000011000110110001101100001100110011",
+        "11011101111110110110110111110011000110110001101111101111100011",
+        "11001101100110110110110110000011000110011011001100001100110000",
+        "01111001100110110110110111110001111100001110001111101100110011",
+    };
+
+    // Print the "Game Over!" pattern
+    for (const auto &row : game_over_pattern)
+    {
+        for (char c : row)
+        {
+            if (c == '1')
+            {
+                std::cout << occupied; // Print occupied cell for '1'
+            }
+            else
+            {
+                std::cout << empty; // Print empty space for '0'
+            }
+        }
+        std::cout << std::endl; // Move to the next line
+    }
 }

@@ -1,4 +1,5 @@
 #include "AsteroidDash.h"
+#include <windows.h>
 
 // Constructor to initialize AsteroidDash with the given parameters
 AsteroidDash::AsteroidDash(const string &space_grid_file_name,
@@ -9,13 +10,14 @@ AsteroidDash::AsteroidDash(const string &space_grid_file_name,
 
     : leaderboard_file_name(leaderboard_file_name), leaderboard(Leaderboard())
 {
+    current_score = 0;
 
     read_player(player_file_name, player_name);          // Initialize player using the player.dat file
     read_space_grid(space_grid_file_name);               // Initialize the grid after the player is loaded
     read_celestial_objects(celestial_objects_file_name); // Load celestial objects
     leaderboard.read_from_file(leaderboard_file_name);
 }
-// function to erase celestial objects in case of a collision
+// Function to erase celestial objects in case of a collision
 void AsteroidDash::erase(CelestialObject *object)
 {
     if (object == nullptr)
@@ -29,15 +31,8 @@ void AsteroidDash::erase(CelestialObject *object)
     {
         celestial_objects_list_head = object->next_celestial_object;
 
-        for (int i = 0; i < object->rotations.size(); i++)
-        {
-            if (object->rotations[i] != nullptr && object->rotations[i] != object)
-            {
-                delete object->rotations[i];
-                object->rotations[i] = nullptr;
-            }
-        }
-        object->rotations.clear();
+        // delete the rotations of the object
+        CelestialObject::delete_rotations(object);
         delete object;
         return;
     }
@@ -59,23 +54,17 @@ void AsteroidDash::erase(CelestialObject *object)
     prev->next_celestial_object = object->next_celestial_object;
 
     // Delete object's rotations
-    for (int i = 0; i < object->rotations.size(); i++)
-    {
-        if (object->rotations[i] != nullptr && object->rotations[i] != object)
-        {
-            delete object->rotations[i];
-        }
-    }
-    object->rotations.clear();
+    CelestialObject::delete_rotations(object);
+    // Delete the object itself
     delete object;
+    return;
 }
 
 bool AsteroidDash::check_projectile_collision(int row, int col)
 {
     for (int i = 0; i < projectiles.size(); i++)
     {
-        if ((projectiles[i].row == row && projectiles[i].col + 1 == col && projectiles[i].col + 1 < space_grid[0].size()) ||
-            (projectiles[i].row == row && projectiles[i].col == col && projectiles[i].col < space_grid[0].size()))
+        if (projectiles[i].row == row && (projectiles[i].col - 1 == col || projectiles[i].col == col && projectiles[i].col < space_grid[0].size()))
         {
             return true;
         }
@@ -130,7 +119,6 @@ void AsteroidDash::read_player(const string &player_file_name, const string &pla
     ifstream file(player_file_name);
 
     int start_row, start_col;
-    // TODO: Your code here
     // read the starting row and col pos. for top-left of the vehicle
     file >> start_row >> start_col;
     string line;
@@ -158,7 +146,9 @@ void AsteroidDash::read_player(const string &player_file_name, const string &pla
 void AsteroidDash::read_celestial_objects(const string &input_file)
 {
     ifstream file(input_file);
+
     string line;
+
     int start_row = 0, time_step = 0;
     CelestialObject *tail = nullptr;
     if (file.peek() == ifstream::traits_type::eof())
@@ -169,18 +159,22 @@ void AsteroidDash::read_celestial_objects(const string &input_file)
     {
         ObjectType type;
         bool is_asteroid = (line[0] == '[');
-        // we need celestial objects if starts with [ its an asteroid
+        // If starts with [ its an asteroid
         if (is_asteroid)
         {
             type = ASTEROID;
         }
-        // if starts with { it is a power-up and has an additional e type
+        // If starts with { it is a power-up and has an additional e type
         else if (line[0] == '{')
         {
             type = LIFE_UP;
         }
+        else
+        {
+            continue;
+        }
         vector<vector<bool>> shape;
-        // traverse the celestial object until the end character to get the shape
+        // Traverse the celestial object until the end character to get the shape
         do
         {
             vector<bool> row;
@@ -262,25 +256,38 @@ void AsteroidDash::read_celestial_objects(const string &input_file)
         node = node->next_celestial_object; // Move to the next node
     }
 }
-
 // Print the entire space grid
 void AsteroidDash::print_space_grid() const
 {
+
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    COORD cursorPosition = {0, 0}; // Set cursor position to the top-left corner
+    SetConsoleCursorPosition(hConsole, cursorPosition);
+    std::ostringstream buffer; // Use a string stream as a buffer
+
+    buffer << "W: Move Up | A: Move Left | S: Move Down | D: Move Right | Space: Shoot | Q: Quit" << "\n";
+    // Display game status
+    buffer << "Time: " << game_time << " | Lives: " << player->lives
+           << " | Ammo: " << player->current_ammo << "/" << player->max_ammo << "| Score: " << current_score << "\n";
+
     for (const auto &row : space_grid)
     {
         for (int value : row)
         {
             if (value == 1)
             {
-                cout << occupiedCellChar;
+                buffer << occupiedCellChar;
             }
             else
             {
-                cout << unoccupiedCellChar;
+                buffer << unoccupiedCellChar;
             }
         }
-        cout << endl;
+        buffer << '\n'; // Add a newline after each row
     }
+
+    // Print the entire buffer at once
+    std::cout << buffer.str();
 }
 
 // Function to update the space grid with player, celestial objects, and any other changes
@@ -292,6 +299,9 @@ void AsteroidDash::update_space_grid()
         game_over = true;
         return;
     }
+
+    current_score += 20; // Increase score for each tick
+
     // Clear the space grid
     for (int i = 0; i < space_grid.size(); i++)
     {
@@ -346,9 +356,17 @@ void AsteroidDash::update_space_grid()
                             else if (celestial_object->object_type != ASTEROID)
                             {
                                 if (celestial_object->object_type == LIFE_UP)
+                                {
+
                                     player->lives++;
+                                    current_score += 200;
+                                }
                                 else if (celestial_object->object_type == AMMO && player->current_ammo < player->max_ammo)
+                                {
                                     player->current_ammo++;
+
+                                    current_score += 100;
+                                }
                             }
 
                             // Erase object and skip placement
@@ -362,19 +380,18 @@ void AsteroidDash::update_space_grid()
                         // Handle projectile collision with celestial objects
                         else if (check_projectile_collision(grid_row, grid_col) && celestial_object->shape[i][j] == 1 && celestial_object->object_type == ASTEROID)
                         {
-                            // Find which projectile caused the collision
+                            celestial_object->shape[i][j] = 0; // Mark the hit part as destroyed
+                            current_score += 100;              // Increase score for destroying an asteroid
+
                             for (int p = 0; p < projectiles.size(); p++)
                             {
-                                if (projectiles[p].row == grid_row && projectiles[p].col + 1 == grid_col)
+                                if (projectiles[p].row == grid_row && (projectiles[p].col - 1 == grid_col || projectiles[p].col == grid_col))
                                 {
-                                    // Remove the projectile
+                                    // Remove the projectile from the list
                                     projectiles.erase(projectiles.begin() + p);
-                                    p--;
-                                    break; // Exit the projectile loop after handling collision
+                                    break; // Exit the loop after removing the projectile
                                 }
                             }
-
-                            celestial_object->shape[i][j] = 0; // Mark the hit part as destroyed
 
                             // Check if the celestial object is completely destroyed
                             bool is_destroyed = true;
@@ -395,6 +412,7 @@ void AsteroidDash::update_space_grid()
                             if (is_destroyed)
                             {
                                 // Erase the celestial object if it is completely destroyed
+                                current_score += 1000; // Increase score for destroying an asteroid
                                 CelestialObject *temp = celestial_object->next_celestial_object;
                                 erase(celestial_object);
                                 celestial_object = temp;

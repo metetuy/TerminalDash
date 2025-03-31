@@ -8,9 +8,9 @@ HEADER_GCH = $(wildcard *.gch)
 
 
 # Default space grid and other files
-SPACE_GRID = sample_io/sample_shooting_update_space_grid.dat
+SPACE_GRID = sample_io/sample_input_space_grid.dat
 CELESTIAL_OBJECTS = sample_io/sample_celestial_objects.dat
-PLAYER_FILE = sample_io/sample_player.dat
+PLAYER_FILE = sample_io/sample_input_player.dat
 LEADERBOARD_FILE = leaderboard.txt
 PLAYER_NAME = Player1
 
